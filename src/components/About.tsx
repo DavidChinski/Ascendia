@@ -20,7 +20,7 @@ const About = () => {
             <h2 className="text-5xl md:text-7xl font-black mb-8">
               <span className="jandar-text-glow">¿POR QUÉ</span>
               <br />
-              <span className="text-muted-foreground">JANDAR?</span>
+              <span className="text-muted-foreground">ASCENDIA?</span>
             </h2>
             <div className="text-2xl md:text-3xl text-accent font-light max-w-3xl mx-auto leading-relaxed">
               Porque presionar botones en 2024 es como usar un fax para enviar emails
@@ -70,7 +70,7 @@ const About = () => {
             </div>
           </div>
 
-          {/* Mission Statement */}
+          {/* mission Statement */}
           <div className="text-center">
             <div className="relative inline-block">
               <div className="absolute inset-0 bg-gradient-primary opacity-20 blur-2xl rounded-full"></div>
