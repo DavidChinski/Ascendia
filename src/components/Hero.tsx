@@ -46,8 +46,8 @@ const Hero = () => {
               </div>
 
               <h1 className="text-7xl md:text-9xl font-black leading-none">
-                <span className="block jandar-text-glow">JAN</span>
-                <span className="block text-right transform translate-x-4">DAR</span>
+                <span className="block jandar-text-glow">ASCEND</span>
+                <span className="block text-right transform translate-x-4">IA</span>
               </h1>
             </div>
             
