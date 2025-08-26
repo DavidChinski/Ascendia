@@ -144,7 +144,7 @@ const Hero = () => {
               <div className="absolute inset-4 rounded-full border border-accent/20 animate-spin" style={{animationDuration: '15s', animationDirection: 'reverse'}}></div>
               
               {/* Logo Container */}
-              <div ref={logoRef} className="relative w-64 h-64 rounded-full bg-gradient-card border border-primary/20 glow-primary group-hover:glow-accent group-hover:scale-110 transition-all duration-500 flex items-center justify-center overflow-hidden z-10">
+              <div id="hero-logo" ref={logoRef} className="relative w-64 h-64 rounded-full bg-gradient-card border border-primary/20 glow-primary group-hover:glow-accent group-hover:scale-110 transition-all duration-500 flex items-center justify-center overflow-hidden z-10">
                 <img 
                   src="/lovable-uploads/AscendiaLogo.jpg" 
                   alt="Ascendia Logo" 
