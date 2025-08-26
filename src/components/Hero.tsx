@@ -1,9 +1,69 @@
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Mic } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const Hero = () => {
+  const [scrollDirection, setScrollDirection] = useState<"up" | "down" | null>(null);
+  const [arrowScale, setArrowScale] = useState<number>(0);
+  const [viewportH, setViewportH] = useState<number>(typeof window !== 'undefined' ? window.innerHeight : 800);
+  const [overlayLeft, setOverlayLeft] = useState<number>(typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
+  const lastScrollYRef = useRef<number>(0);
+  const hideTimerRef = useRef<number | null>(null);
+  const logoRef = useRef<HTMLDivElement | null>(null);
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [showOverlay, setShowOverlay] = useState<boolean>(true);
+
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollYRef.current;
+      if (Math.abs(delta) > 4) {
+        setScrollDirection(delta > 0 ? "down" : "up");
+        const demoTitleEl = document.getElementById('demo-title') || document.getElementById('demo');
+        const demoTopAbs = demoTitleEl ? (demoTitleEl.getBoundingClientRect().top + window.scrollY) : (document.documentElement.scrollHeight - (window.innerHeight || 0));
+        const normalized = Math.min(1, Math.max(0, currentY / Math.max(1, demoTopAbs)));
+        setArrowScale(normalized);
+        // mostrar overlay desde el inicio hasta antes de llegar a la demo
+        const demoRect = demoTitleEl?.getBoundingClientRect();
+        setShowOverlay(demoRect ? demoRect.top > 0 : true);
+        if (hideTimerRef.current) {
+          window.clearTimeout(hideTimerRef.current);
+        }
+        hideTimerRef.current = window.setTimeout(() => {
+          setScrollDirection(null);
+          setArrowScale(0);
+        }, 700);
+        lastScrollYRef.current = currentY;
+      }
+    };
+
+    const onResize = () => {
+      setViewportH(window.innerHeight || viewportH);
+      // recalcular alineación horizontal del overlay con el logo
+      const rect = logoRef.current?.getBoundingClientRect();
+      if (rect) setOverlayLeft(rect.left + rect.width / 2);
+      const demoTitleEl = document.getElementById('demo-title') || document.getElementById('demo');
+      const demoRect = demoTitleEl?.getBoundingClientRect();
+      setShowOverlay(demoRect ? demoRect.top > 0 : true);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    // calcular posición inicial del overlay alineado al logo
+    const rect = logoRef.current?.getBoundingClientRect();
+    if (rect) setOverlayLeft(rect.left + rect.width / 2);
+  }, []);
   return (
-    <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <section ref={heroRef} className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Dynamic Background */}
       <div className="absolute inset-0 bg-gradient-background"></div>
       
@@ -66,7 +126,7 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <Button className="jandar-button group">
+              <Button className="jandar-button group" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}>
                 <Mic className="w-5 h-5 mr-2 group-hover:animate-bounce" />
                 Probar ahora
               </Button>
@@ -84,13 +144,37 @@ const Hero = () => {
               <div className="absolute inset-4 rounded-full border border-accent/20 animate-spin" style={{animationDuration: '15s', animationDirection: 'reverse'}}></div>
               
               {/* Logo Container */}
-              <div className="relative p-12 rounded-full bg-gradient-card border border-primary/20 glow-primary group-hover:glow-accent group-hover:scale-110 transition-all duration-500">
+              <div ref={logoRef} className="relative w-64 h-64 rounded-full bg-gradient-card border border-primary/20 glow-primary group-hover:glow-accent group-hover:scale-110 transition-all duration-500 flex items-center justify-center overflow-hidden z-10">
                 <img 
-                  src="/lovable-uploads/e06ad9bf-7b05-43c9-98a4-5703c916ee2c.png" 
-                  alt="Jandar Logo" 
-                  className="w-40 h-40 object-contain animate-float"
+                  src="/lovable-uploads/AscendiaLogo.jpg" 
+                  alt="Ascendia Logo" 
+                  className="w-full h-full object-contain"
                 />
               </div>
+
+              {showOverlay && (
+              <div className="fixed inset-y-0 pointer-events-none z-0" style={{ left: overlayLeft, transform: 'translateX(-50%)' }}>
+                <div className="relative h-screen w-10">
+                  <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full bg-gradient-to-b from-primary/20 via-primary/60 to-primary/20"></div>
+                  <div
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-[3px] rounded-full transition-[height] duration-150"
+                    style={{
+                      height: `${Math.round(arrowScale * 100)}%`,
+                      background: 'linear-gradient(to bottom, hsl(var(--primary)) 0%, rgba(0,0,0,0) 100%)'
+                    }}
+                  ></div>
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-xl border border-primary/40 bg-gradient-primary/40 shadow-lg backdrop-blur-sm transition-[top] duration-150"
+                    style={{
+                      top: `${Math.round(arrowScale * (viewportH - 24))}px`,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.25), 0 0 12px hsla(var(--primary), 0.6)'
+                    }}
+                  >
+                    <div className="absolute inset-0 rounded-xl animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+              )}
               
               {/* Pulsating Dots */}
               <div className="absolute -top-4 -right-4 w-4 h-4 bg-primary rounded-full animate-ping"></div>

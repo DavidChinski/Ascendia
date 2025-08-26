@@ -304,14 +304,14 @@ const InteractiveDemo = () => {
   }, [executeTextCommand]);
 
   return (
-    <section className="py-32 relative overflow-hidden">
+    <section id="demo" className="py-32 relative overflow-hidden">
       {/* Diagonal Background */}
       <div className="absolute inset-0 bg-gradient-background"></div>
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 transform -skew-y-6"></div>
       
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-20">
-          <h2 className="text-6xl font-black mb-6 jandar-text-glow">
+          <h2 id="demo-title" className="text-6xl font-black mb-6 jandar-text-glow">
             DEMO LIVE
           </h2>
           <p className="text-2xl text-accent">
