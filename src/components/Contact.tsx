@@ -292,7 +292,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="text-xl font-bold">hola@jandar.tech</p>
+                    <p className="text-xl font-bold">ascendiaassistance@gmail.com</p>
                   </div>
                 </div>
               </div>
@@ -304,7 +304,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">WhatsApp</p>
-                    <p className="text-xl font-bold">+34 900 JANDAR</p>
+                    <p className="text-xl font-bold">+11 1234 5678</p>
                   </div>
                 </div>
               </div>

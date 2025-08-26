@@ -81,7 +81,7 @@ const About = () => {
                 <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed">
                   Hacer que <span className="text-primary font-semibold">cada persona</span>, 
                   sin importar sus limitaciones físicas, pueda moverse libremente entre pisos 
-                  con solo su voz. <span className="text-accent font-semibold">Tecnología inclusiva</span> 
+                  con solo su voz. <span className="text-accent font-semibold">Tecnología inclusiva </span> 
                   que no discrimina.
                 </p>
               </div>

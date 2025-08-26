@@ -329,7 +329,7 @@ const InteractiveDemo = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/60 to-secondary/50 mix-blend-screen"></div>
               </div>
               <div>
-                <h3 className="text-xl font-bold">Jandar — Control por voz</h3>
+                <h3 className="text-xl font-bold">Ascendia — Control por voz</h3>
                 <p className="text-sm text-muted-foreground">Prototipo educativo (cliente web)</p>
               </div>
             </div>
