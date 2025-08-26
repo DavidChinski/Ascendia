@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba EmailJS - Ascendia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .loading {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+        .logs {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Prueba EmailJS - Ascendia</h1>
+        <p>Esta página te permite probar el envío de emails con los parámetros simplificados.</p>
+        
+        <form id="emailForm">
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" value="Usuario de Prueba" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="test@ejemplo.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="edificio">Edificio:</label>
+                <input type="text" id="edificio" name="edificio" value="Edificio de Prueba" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion" rows="4" required>Este es un mensaje de prueba para verificar que EmailJS funciona correctamente.</textarea>
+            </div>
+            
+            <button type="submit" id="submitBtn">📧 Enviar Email de Prueba</button>
+        </form>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div class="logs">
+            <h3>📋 Logs de Consola:</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <!-- EmailJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <script>
+        // Configuración de EmailJS
+        const EMAILJS_CONFIG = {
+            PUBLIC_KEY: 'XoJiVKGAZPjhe_efb',
+            SERVICE_ID: 'service_1yf4l18',
+            TEMPLATE_ID: 'template_xvcga3t',
+            DEFAULT_TO_EMAIL: 'ascendia.assistance@gmail.com'
+        };
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.marginBottom = '5px';
+            logEntry.style.color = type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#1f2937';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // Inicializar EmailJS
+        function initEmailJS() {
+            try {
+                emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+                addLog('✅ EmailJS inicializado correctamente', 'success');
+                addLog(`🔑 Clave pública: ${EMAILJS_CONFIG.PUBLIC_KEY}`);
+                addLog(`📧 Servicio: ${EMAILJS_CONFIG.SERVICE_ID}`);
+                addLog(`📝 Plantilla: ${EMAILJS_CONFIG.TEMPLATE_ID}`);
+            } catch (error) {
+                addLog(`❌ Error inicializando EmailJS: ${error.message}`, 'error');
+            }
+        }
+
+        // Función para enviar email
+        async function sendEmail(formData) {
+            try {
+                addLog('📤 Iniciando envío de email...');
+                
+                const templateParams = {
+                    email: formData.email,
+                    nombre: formData.nombre,
+                    edificio: formData.edificio,
+                    descripcion: formData.descripcion
+                };
+
+                addLog('📋 Parámetros de la plantilla:', 'info');
+                Object.entries(templateParams).forEach(([key, value]) => {
+                    addLog(`   ${key}: ${value}`);
+                });
+
+                const result = await emailjs.send(
+                    EMAILJS_CONFIG.SERVICE_ID,
+                    EMAILJS_CONFIG.TEMPLATE_ID,
+                    templateParams
+                );
+
+                addLog(`✅ Email enviado exitosamente!`, 'success');
+                addLog(`📧 Message ID: ${result.text}`);
+                return result;
+
+            } catch (error) {
+                addLog(`❌ Error enviando email: ${error.text || error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const statusDiv = document.getElementById('status');
+            
+            // Deshabilitar botón y mostrar estado de carga
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Enviando...';
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '📤 Enviando email de prueba...';
+            
+            try {
+                const formData = {
+                    nombre: document.getElementById('nombre').value,
+                    email: document.getElementById('email').value,
+                    edificio: document.getElementById('edificio').value,
+                    descripcion: document.getElementById('descripcion').value
+                };
+
+                const result = await sendEmail(formData);
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = `✅ Email enviado exitosamente! Message ID: ${result.text}`;
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error: ${error.text || error.message}`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📧 Enviar Email de Prueba';
+            }
+        });
+
+        // Inicializar cuando se carga la página
+        window.addEventListener('load', () => {
+            addLog('🚀 Página cargada, inicializando EmailJS...');
+            initEmailJS();
+        });
+
+        // Interceptar console.log para mostrar en la página
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(`ℹ️ ${args.join(' ')}`);
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(`❌ ${args.join(' ')}`, 'error');
+        };
+    </script>
+</body>
+</html>

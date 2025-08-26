@@ -1,7 +1,148 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, ArrowRight } from "lucide-react";
+import { Mail, Phone, ArrowRight, CheckCircle, AlertCircle } from "lucide-react";
+import { initEmailJS, sendEmail } from "@/config/emailjs";
+
+interface FormData {
+  nombre: string;
+  email: string;
+  empresa: string;
+  mensaje: string;
+}
+
+interface FormStatus {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+}
 
 const Contact = () => {
+  const [formData, setFormData] = useState<FormData>({
+    nombre: "",
+    email: "",
+    empresa: "",
+    mensaje: "",
+  });
+
+  const [status, setStatus] = useState<FormStatus>({
+    loading: false,
+    success: false,
+    error: null,
+  });
+
+  // Cargar EmailJS
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('EmailJS script cargado');
+      initEmailJS();
+    };
+    script.onerror = () => {
+      console.error('Error cargando EmailJS script');
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const validateForm = (): boolean => {
+    if (!formData.nombre.trim()) {
+      setStatus({ loading: false, success: false, error: "El nombre es requerido" });
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setStatus({ loading: false, success: false, error: "El email es requerido" });
+      return false;
+    }
+    if (!formData.empresa.trim()) {
+      setStatus({ loading: false, success: false, error: "La empresa/edificio es requerido" });
+      return false;
+    }
+    if (!formData.mensaje.trim()) {
+      setStatus({ loading: false, success: false, error: "El mensaje es requerido" });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+
+    setStatus({ loading: true, success: false, error: null });
+
+    try {
+      console.log('Enviando email con datos:', formData);
+      
+      const result = await sendEmail(formData);
+      
+      console.log('Respuesta de EmailJS:', result);
+
+      if (result.status === 200) {
+        setStatus({ loading: false, success: true, error: null });
+        // Limpiar formulario después del éxito
+        setFormData({
+          nombre: "",
+          email: "",
+          empresa: "",
+          mensaje: "",
+        });
+        // Resetear estado de éxito después de 5 segundos
+        setTimeout(() => {
+          setStatus(prev => ({ ...prev, success: false }));
+        }, 5000);
+      } else {
+        console.error('EmailJS devolvió status no exitoso:', result.status);
+        setStatus({ loading: false, success: false, error: `Error del servidor: ${result.status}` });
+      }
+    } catch (error) {
+      console.error('Error completo:', error);
+      
+      let errorMessage = 'Error al enviar el email. Intenta nuevamente.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // @ts-ignore
+        if (error.text) {
+          // @ts-ignore
+          errorMessage = `Error: ${error.text}`;
+        }
+      }
+      
+      setStatus({ 
+        loading: false, 
+        success: false, 
+        error: errorMessage
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      nombre: "",
+      email: "",
+      empresa: "",
+      mensaje: "",
+    });
+    setStatus({ loading: false, success: false, error: null });
+  };
+
   return (
     <section className="py-32 relative overflow-hidden">
       {/* Dynamic Background */}
@@ -32,39 +173,99 @@ const Contact = () => {
                 Demo Personalizada
               </h3>
               
-              <form className="space-y-6">
+              {/* Status Messages */}
+              {status.success && (
+                <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-2xl flex items-center space-x-3">
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <div>
+                    <p className="text-green-600 font-medium">¡Mensaje enviado exitosamente!</p>
+                    <p className="text-green-500 text-sm">Te responderemos en menos de 24 horas.</p>
+                  </div>
+                </div>
+              )}
+
+              {status.error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center space-x-3">
+                  <AlertCircle className="w-6 h-6 text-red-500" />
+                  <div>
+                    <p className="text-red-600 font-medium">Error al enviar el mensaje</p>
+                    <p className="text-red-500 text-sm">{status.error}</p>
+                  </div>
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <input 
                     type="text" 
+                    name="nombre"
                     placeholder="Tu nombre"
+                    value={formData.nombre}
+                    onChange={handleInputChange}
                     className="w-full p-4 rounded-2xl bg-background/50 border border-border/20 text-foreground placeholder:text-muted-foreground focus:border-primary focus:glow-primary transition-all duration-300"
+                    disabled={status.loading}
                   />
                   <input 
                     type="email" 
+                    name="email"
                     placeholder="Email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     className="w-full p-4 rounded-2xl bg-background/50 border border-border/20 text-foreground placeholder:text-muted-foreground focus:border-primary focus:glow-primary transition-all duration-300"
+                    disabled={status.loading}
                   />
                 </div>
                 
                 <input 
                   type="text" 
+                  name="empresa"
                   placeholder="Empresa / Edificio"
+                  value={formData.empresa}
+                  onChange={handleInputChange}
                   className="w-full p-4 rounded-2xl bg-background/50 border border-border/20 text-foreground placeholder:text-muted-foreground focus:border-primary focus:glow-primary transition-all duration-300"
+                  disabled={status.loading}
                 />
                 
                 <textarea 
+                  name="mensaje"
                   placeholder="Cuéntanos sobre tu proyecto. ¿Cuántos ascensores? ¿Qué tipo de edificio?"
                   rows={4}
+                  value={formData.mensaje}
+                  onChange={handleInputChange}
                   className="w-full p-4 rounded-2xl bg-background/50 border border-border/20 text-foreground placeholder:text-muted-foreground focus:border-primary focus:glow-primary transition-all duration-300 resize-none"
+                  disabled={status.loading}
                 ></textarea>
                 
-                <Button 
-                  type="submit"
-                  className="w-full jandar-button text-xl py-6 group"
-                >
-                  Solicitar Demo
-                  <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-2 transition-transform" />
-                </Button>
+                <div className="flex space-x-4">
+                  <Button 
+                    type="submit"
+                    disabled={status.loading}
+                    className="flex-1 jandar-button text-xl py-6 group"
+                  >
+                    {status.loading ? (
+                      <>
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        Solicitar Demo
+                        <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-2 transition-transform" />
+                      </>
+                    )}
+                  </Button>
+                  
+                  {status.success && (
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      onClick={resetForm}
+                      className="px-6 py-6 border-accent/30 hover:border-accent hover:bg-accent/10"
+                    >
+                      Nuevo Mensaje
+                    </Button>
+                  )}
+                </div>
               </form>
             </div>
           </div>
