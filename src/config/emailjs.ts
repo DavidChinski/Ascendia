@@ -37,11 +37,25 @@ export const sendEmail = async (formData: {
     throw new Error('EmailJS no está cargado');
   }
 
+  // Obtener fecha y hora actual
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  const hora = now.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
   console.log('Enviando email con variables:', {
-    email: formData.email,
-    nombre: formData.nombre,
-    edificio: formData.empresa,
-    descripcion: formData.mensaje
+    from_name: formData.nombre,
+    from_email: formData.email,
+    empresa: formData.empresa,
+    message: formData.mensaje,
+    fecha: fecha,
+    hora: hora
   });
 
   // @ts-ignore
@@ -49,10 +63,12 @@ export const sendEmail = async (formData: {
     EMAILJS_CONFIG.SERVICE_ID,
     EMAILJS_CONFIG.TEMPLATE_ID,
     {
-      email: formData.email,
-      nombre: formData.nombre,
-      edificio: formData.empresa,
-      descripcion: formData.mensaje
+      from_name: formData.nombre,
+      from_email: formData.email,
+      empresa: formData.empresa,
+      message: formData.mensaje,
+      fecha: fecha,
+      hora: hora
     }
   );
 };
