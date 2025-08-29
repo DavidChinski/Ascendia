@@ -12,6 +12,7 @@ const Hero = () => {
   const logoRef = useRef<HTMLDivElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
   const [showOverlay, setShowOverlay] = useState<boolean>(true);
+  const [overlayOpacity, setOverlayOpacity] = useState<number>(1);
 
   useEffect(() => {
     lastScrollYRef.current = window.scrollY;
@@ -20,13 +21,16 @@ const Hero = () => {
       const delta = currentY - lastScrollYRef.current;
       if (Math.abs(delta) > 4) {
         setScrollDirection(delta > 0 ? "down" : "up");
-        const demoTitleEl = document.getElementById('demo-title') || document.getElementById('demo');
-        const demoTopAbs = demoTitleEl ? (demoTitleEl.getBoundingClientRect().top + window.scrollY) : (document.documentElement.scrollHeight - (window.innerHeight || 0));
+        const targetEl = document.getElementById('demo-gradient-overlay') || document.getElementById('demo-title') || document.getElementById('demo');
+        const demoTopAbs = targetEl ? (targetEl.getBoundingClientRect().top + window.scrollY) : (document.documentElement.scrollHeight - (window.innerHeight || 0));
         const normalized = Math.min(1, Math.max(0, currentY / Math.max(1, demoTopAbs)));
         setArrowScale(normalized);
-        // mostrar overlay desde el inicio hasta antes de llegar a la demo
-        const demoRect = demoTitleEl?.getBoundingClientRect();
-        setShowOverlay(demoRect ? demoRect.top > 0 : true);
+        // Fade-out y ocultar un poco ANTES de llegar al h2#demo-title
+        const fadeDistance = 360; // más largo y suave
+        const fadeStart = Math.max(0, demoTopAbs - fadeDistance);
+        const opacity = currentY < fadeStart ? 1 : Math.max(0, 1 - (currentY - fadeStart) / fadeDistance);
+        setOverlayOpacity(opacity);
+        setShowOverlay(currentY < demoTopAbs - 16 && opacity > 0.02);
         if (hideTimerRef.current) {
           window.clearTimeout(hideTimerRef.current);
         }
@@ -43,9 +47,14 @@ const Hero = () => {
       // recalcular alineación horizontal del overlay con el logo
       const rect = logoRef.current?.getBoundingClientRect();
       if (rect) setOverlayLeft(rect.left + rect.width / 2);
-      const demoTitleEl = document.getElementById('demo-title') || document.getElementById('demo');
-      const demoRect = demoTitleEl?.getBoundingClientRect();
-      setShowOverlay(demoRect ? demoRect.top > 0 : true);
+      const targetEl = document.getElementById('demo-gradient-overlay') || document.getElementById('demo-title') || document.getElementById('demo');
+      const demoTopAbs = targetEl ? (targetEl.getBoundingClientRect().top + window.scrollY) : Number.POSITIVE_INFINITY;
+      const fadeDistance = 360;
+      const fadeStart = Math.max(0, demoTopAbs - fadeDistance);
+      const currentY = window.scrollY;
+      const opacity = currentY < fadeStart ? 1 : Math.max(0, 1 - (currentY - fadeStart) / fadeDistance);
+      setOverlayOpacity(opacity);
+      setShowOverlay(currentY < demoTopAbs - 16 && opacity > 0.02);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
@@ -153,7 +162,7 @@ const Hero = () => {
               </div>
 
               {showOverlay && (
-              <div className="fixed inset-y-0 pointer-events-none z-0" style={{ left: overlayLeft, transform: 'translateX(-50%)' }}>
+              <div className="fixed inset-y-0 pointer-events-none z-0 transition-opacity duration-700" style={{ left: overlayLeft, transform: 'translateX(-50%)', opacity: overlayOpacity }}>
                 <div className="relative h-screen w-10">
                   <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full bg-gradient-to-b from-primary/20 via-primary/60 to-primary/20"></div>
                   <div
